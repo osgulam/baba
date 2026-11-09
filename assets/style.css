@@ -23,10 +23,14 @@ h1{color:var(--accent);font-family:var(--display);font-weight:700;font-size:clam
 .chip{font:inherit;font-size:.95rem;border:1px solid var(--line);background:transparent;color:var(--ink);padding:5px 15px;border-radius:999px;cursor:pointer;white-space:nowrap;flex:none}
 .chip[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 
-.gallery{list-style:none;margin:0;padding:14px 0 110px;columns:2;column-gap:14px}
-@media (min-width:700px){.gallery{columns:3;column-gap:22px}}
-@media (min-width:1040px){.gallery{columns:4}}
-.gallery li{break-inside:avoid;margin-bottom:22px}
+/* Phone: one work per row, full width, scroll down. Wider screens: masonry columns. */
+.gallery{list-style:none;margin:0;padding:14px 0 110px;columns:1}
+.gallery li{break-inside:avoid;margin-bottom:34px}
+.gallery .frame{border-radius:10px}
+.gallery .cap .name{font-size:1.2rem}
+@media (min-width:600px){.gallery{columns:2;column-gap:20px}.gallery li{margin-bottom:26px}.gallery .cap .name{font-size:1.05rem}}
+@media (min-width:900px){.gallery{columns:3;column-gap:22px}}
+@media (min-width:1200px){.gallery{columns:4}}
 .piece{all:unset;display:flex;flex-direction:column;gap:8px;cursor:pointer;width:100%;box-sizing:border-box;border-radius:6px}
 .frame{position:relative;border-radius:6px;overflow:hidden;background:var(--chip);max-width:100%}
 .frame img{display:block;width:100%;height:auto;min-height:80px;transition:transform .5s ease}
