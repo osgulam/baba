@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Karantina:wght@400;700&display=swap">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
-<link rel="stylesheet" href="assets/style.css?v=202611090642">
+<link rel="stylesheet" href="assets/style.css?v=202611090645">
 <script>
   /* Repo settings. Leave owner/repo empty to detect them from the <owner>.github.io/<repo> address. Fill them in if you use your own domain. */
   window.SITE_CONFIG = { owner: "osgulam", repo: "baba", branch: "main" };
@@ -53,9 +53,9 @@
   <form class="sheet" id="form" novalidate>
     <button class="close" type="button" data-close aria-label="סגירה">×</button>
     <h2 id="formTitle">עבודה חדשה</h2>
-    <div class="field"><span class="lbl">תמונות</span><span class="hint">אפשר להוסיף כמה תמונות מזוויות שונות. הראשונה תוצג בגלריה; לחיצה על תמונה אחרת תהפוך אותה לראשית.</span>
+    <div class="field"><span class="lbl">תמונות וסרטון</span><span class="hint">אפשר להוסיף כמה תמונות מזוויות שונות, וגם סרטון קצר (עד 40MB, בערך דקה). הפריט הראשון יוצג בגלריה; לחיצה על פריט אחר תהפוך אותו לראשי.</span>
       <div class="photos" id="photos"></div>
-      <input id="fImg" class="sr" type="file" accept="image/*" multiple>
+      <input id="fImg" class="sr" type="file" accept="image/*,video/*" multiple>
     </div>
     <div class="field"><label for="fCat">קטגוריה</label><select id="fCat"></select></div>
     <div class="field"><label for="fTitle">שם העבודה</label><input id="fTitle" maxlength="80" required placeholder="למשל: שולחן אוכל מאלון"></div>
@@ -104,6 +104,6 @@
 </div>
 
 <div class="toast" id="toast" hidden></div>
-<script src="assets/app.js?v=202611090642"></script>
+<script src="assets/app.js?v=202611090645"></script>
 </body>
 </html>

@@ -49,6 +49,22 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function imgs(it) { return Array.isArray(it.images) ? it.images : []; }
   function urlOf(p) { return localUrls[p] || p; }
+  var MAX_VIDEO_MB = 40;
+  function isVid(p) { return /\.(mp4|mov|m4v|webm)$/i.test(p || ''); }
+  function isVidFile(f) { return /^video\//.test(f.type) || isVid(f.name); }
+  // thumbnail-style media: video shows its first frame with a play badge
+  function thumbHtml(p, attrs) {
+    return isVid(p)
+      ? '<video src="' + esc(urlOf(p)) + '#t=0.1" muted playsinline preload="metadata"></video><span class="play" aria-hidden="true"></span>'
+      : '<img src="' + esc(urlOf(p)) + '" data-path="' + esc(p) + '"' + (attrs || '') + '>';
+  }
+  function mediaLabel(list) {
+    var v = list.filter(isVid).length, im = list.length - v, parts = [];
+    if (im > 1) parts.push(im + ' תמונות'); else if (im === 1 && v) parts.push('תמונה');
+    if (v) parts.push(v > 1 ? v + ' סרטונים' : 'סרטון');
+    return parts.join(' · ');
+  }
+  function pauseAll(root) { (root || document).querySelectorAll('video').forEach(function (v) { try { v.pause(); } catch (e) {} }); }
   function rawUrl(p) { return repo ? 'https://raw.githubusercontent.com/' + repo.owner + '/' + repo.name + '/' + repo.branch + '/' + p : ''; }
   function catOf(i) { return CATS.indexOf(i.category) >= 0 ? i.category : 'אחר'; }
   function woods() { var s = []; items.forEach(function (i) { if (i.wood && s.indexOf(i.wood) < 0) s.push(i.wood); }); return s; }
@@ -80,12 +96,12 @@
       var sub = [catOf(i), i.wood].filter(Boolean).join(' · ');
       return '<li class="work" data-id="' + esc(i.id) + '">' +
         '<div class="r-media"><div class="r-track" data-open>' + ims.map(function (p, k) {
-          return '<div class="r-slide"><img' + (k ? ' loading="lazy"' : '') + ' src="' + esc(urlOf(p)) + '" data-path="' + esc(p) + '" alt="' + esc(i.title) + (n > 1 ? ' – תמונה ' + (k + 1) : '') + '"></div>';
+          return '<div class="r-slide">' + thumbHtml(p, (k ? ' loading="lazy"' : '') + ' alt="' + esc(i.title) + (n > 1 ? ' – ' + (k + 1) : '') + '"') + '</div>';
         }).join('') + '</div>' + (i.sample ? '<span class="badge">דוגמה</span>' : '') +
         (n > 1 ? '<div class="dots" aria-hidden="true">' + ims.map(function (_, k) { return '<span' + (k ? '' : ' class="on"') + '></span>'; }).join('') + '</div>' : '') + '</div>' +
         '<button type="button" class="r-info" data-open><span class="name">' + esc(i.title) + '</span>' +
         (sub ? '<span class="sub">' + esc(sub) + '</span>' : '') + (i.size ? '<span class="sub">' + esc(i.size) + ' ס״מ</span>' : '') +
-        (i.year ? '<span class="yr">' + esc(i.year) + '</span>' : '') + (n > 1 ? '<span class="more">' + n + ' תמונות ›</span>' : '') + '</button>' +
+        (i.year ? '<span class="yr">' + esc(i.year) + '</span>' : '') + (n > 1 || ims.some(isVid) ? '<span class="more">' + mediaLabel(ims) + ' ›</span>' : '') + '</button>' +
         (i.description ? '<p class="r-desc">' + esc(i.description) + '</p>' : '') + '</li>';
     }).join('');
     grid.querySelectorAll('.r-track').forEach(function (t) {
@@ -116,13 +132,15 @@
     var ims = imgs(it), n = ims.length;
     var rows = [['קטגוריה', catOf(it)], ['עץ', it.wood], ['מידות', it.size ? it.size + ' ס״מ' : ''], ['שנה', it.year]].filter(function (r) { return r[1]; });
     var media = '<div class="viewer"><div class="track" id="track">' + ims.map(function (p, k) {
-      return '<div class="slide" data-k="' + k + '"><img src="' + esc(urlOf(p)) + '" data-path="' + esc(p) + '" alt="' + esc(it.title) + (n > 1 ? ' – תמונה ' + (k + 1) + ' מתוך ' + n : '') + '"' + (k ? ' loading="lazy"' : '') + '></div>';
+      return '<div class="slide" data-k="' + k + '">' + (isVid(p)
+        ? '<video src="' + esc(urlOf(p)) + '#t=0.1" controls playsinline preload="metadata" aria-label="' + esc(it.title) + ' – סרטון"></video>'
+        : '<img src="' + esc(urlOf(p)) + '" data-path="' + esc(p) + '" alt="' + esc(it.title) + (n > 1 ? ' – תמונה ' + (k + 1) + ' מתוך ' + n : '') + '"' + (k ? ' loading="lazy"' : '') + '>') + '</div>';
     }).join('') + '</div>' +
       (n > 1 ? '<button class="nav prev" type="button" data-act="prev" aria-label="התמונה הקודמת" disabled>›</button><button class="nav next" type="button" data-act="next" aria-label="התמונה הבאה">‹</button><span class="counter" id="counter">1 / ' + n + '</span>' : '') + '</div>' +
-      (n > 1 ? '<div class="thumbs">' + ims.map(function (p, k) { return '<button type="button" class="thumb" data-act="go" data-k="' + k + '" aria-label="תמונה ' + (k + 1) + '" aria-current="' + (k === 0) + '"><img src="' + esc(urlOf(p)) + '" data-path="' + esc(p) + '" alt=""></button>'; }).join('') + '</div>' : '');
+      (n > 1 ? '<div class="thumbs">' + ims.map(function (p, k) { return '<button type="button" class="thumb" data-act="go" data-k="' + k + '" aria-label="תמונה ' + (k + 1) + '" aria-current="' + (k === 0) + '">' + thumbHtml(p, ' alt=""') + '</button>'; }).join('') + '</div>' : '');
     dBody.innerHTML = '<div class="d-wrap"><div class="d-media">' + media + '</div><div class="d-info"><h2 id="dTitle">' + esc(it.title) + '</h2>' +
       (canEdit() ? '<div class="row" id="dActs"><button class="btn" type="button" data-act="edit">עריכה</button><button class="btn danger" type="button" data-act="ask">מחיקה</button></div>' +
-        '<div class="confirm" id="dConfirm" hidden><p><b>למחוק את "' + esc(it.title) + '"?</b></p><p class="hint">העבודה וכל התמונות שלה יימחקו מהאתר לכולם. אפשר לשחזר רק דרך ההיסטוריה ב־GitHub.</p><div class="row"><button class="btn danger" type="button" data-act="del">כן, למחוק</button><button class="btn" type="button" data-act="keep">ביטול</button></div></div>' : '') +
+        '<div class="confirm" id="dConfirm" hidden><p><b>למחוק את "' + esc(it.title) + '"?</b></p><p class="hint">העבודה וכל התמונות והסרטונים שלה יימחקו מהאתר לכולם. אפשר לשחזר רק דרך ההיסטוריה ב־GitHub.</p><div class="row"><button class="btn danger" type="button" data-act="del">כן, למחוק</button><button class="btn" type="button" data-act="keep">ביטול</button></div></div>' : '') +
       (rows.length ? '<dl class="tag">' + rows.map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>' : '') +
       (it.description ? '<p class="d-desc">' + esc(it.description) + '</p>' : '') +
       (it.sample ? '<p class="note">זו עבודה לדוגמה. אפשר למחוק אותה ולהעלות עבודות אמיתיות.</p>' : '') +
@@ -136,6 +154,7 @@
     }
   }
   function setIdx(k) {
+    if (k !== idx) pauseAll(dBody);
     idx = k; var n = dBody.querySelectorAll('.slide').length;
     var c = $('counter'); if (c) c.textContent = (k + 1) + ' / ' + n;
     dBody.querySelectorAll('.thumb').forEach(function (t) { t.setAttribute('aria-current', String(+t.dataset.k === k)); });
@@ -150,6 +169,7 @@
   }
   function closeAll() {
     if (busy) return;
+    pauseAll();
     detail.hidden = true; editor.hidden = true; login.hidden = true; $('aboutView').hidden = true; $('aboutEditor').hidden = true; lock(false); current = null;
     if (io) { io.disconnect(); io = null; }
   }
@@ -157,9 +177,9 @@
   /* ---------- editor ---------- */
   function renderPhotos() {
     $('photos').innerHTML = draft.map(function (d, k) {
-      return '<div class="ptile' + (k ? '' : ' main') + '"><button type="button" class="pimg" data-pk="' + k + '" aria-label="' + (k ? 'הפיכה לתמונה הראשית' : 'התמונה הראשית') + '"><img src="' + esc(d.url) + '" alt=""></button>' +
+      return '<div class="ptile' + (k ? '' : ' main') + '"><button type="button" class="pimg" data-pk="' + k + '" aria-label="' + (k ? 'הפיכה לתמונה הראשית' : 'התמונה הראשית') + '">' + (d.vid || isVid(d.path) ? '<video src="' + esc(d.url) + '#t=0.1" muted playsinline preload="metadata"></video><span class="play" aria-hidden="true"></span>' : '<img src="' + esc(d.url) + '" alt="">') + '</button>' +
         (k ? '' : '<span class="mainlbl">ראשית</span>') + '<button type="button" class="pdel" data-pdel="' + k + '" aria-label="הסרת התמונה">×</button></div>';
-    }).join('') + '<label class="padd" for="fImg"><b>+</b><span>' + (draft.length ? 'עוד תמונות' : 'הוספת תמונות') + '</span></label>';
+    }).join('') + '<label class="padd" for="fImg"><b>+</b><span>' + (draft.length ? 'עוד תמונות או סרטון' : 'הוספת תמונות או סרטון') + '</span></label>';
   }
   function openEditor(it) {
     editing = it || null;
@@ -240,7 +260,7 @@
   form.addEventListener('submit', function (e) {
     e.preventDefault(); if (busy) return;
     var title = $('fTitle').value.trim();
-    if (!draft.length) { setStatus('צריך להוסיף לפחות תמונה אחת.', true); return; }
+    if (!draft.length) { setStatus('צריך להוסיף לפחות תמונה או סרטון אחד.', true); return; }
     if (!title) { setStatus('צריך לתת שם לעבודה.', true); $('fTitle').focus(); return; }
     var id = editing ? editing.id : newId();
     var fields = { title: title, category: $('fCat').value, wood: $('fWood').value.trim(), size: $('fSize').value.trim(), year: $('fYear').value.replace(/[^\d]/g, ''), description: $('fDesc').value.trim() };
@@ -249,7 +269,16 @@
     var stamp = Date.now().toString(36);
     var prep = fresh.reduce(function (p, d, k) {
       return p.then(function (acc) {
-        setStatus(fresh.length > 1 ? 'מכין תמונה ' + (++done) + ' מתוך ' + fresh.length + '…' : 'מכין את התמונה…');
+        ++done;
+        if (d.vid) {
+          setStatus('מכין את הסרטון… זה יכול לקחת רגע.');
+          return toBase64(d.file).then(function (b64) {
+            var ext = /webm/i.test(d.file.type) ? 'webm' : 'mp4';
+            d.path = 'images/works/' + id + '-' + stamp + '-' + (k + 1) + '.' + ext;
+            acc.push({ path: d.path, base64: b64 }); return acc;
+          });
+        }
+        setStatus(fresh.length > 1 ? 'מכין קובץ ' + done + ' מתוך ' + fresh.length + '…' : 'מכין את התמונה…');
         return toJpeg(d.file).catch(function (err) { if (/^image\/(jpeg|png|webp|gif)$/.test(d.file.type)) return d.file; throw err; })
           .then(toBase64).then(function (b64) {
             d.path = 'images/works/' + id + '-' + stamp + '-' + (k + 1) + '.jpg';
@@ -258,7 +287,7 @@
       });
     }, Promise.resolve([]));
     prep.then(function (files) {
-      setStatus('שומר ומפרסם…');
+      setStatus(fresh.some(function (d) { return d.vid; }) ? 'מעלה ומפרסם… עם סרטון זה יכול לקחת דקה, לא לסגור את הדף.' : 'שומר ומפרסם…');
       var imagesNow = draft.map(function (d) { return d.path; });
       return commit((editing ? 'עדכון עבודה: ' : 'עבודה חדשה: ') + title, files, function (latest) {
         var prev = latest.filter(function (x) { return x.id === id; })[0];
@@ -332,8 +361,14 @@
     if (p && +p.dataset.pk > 0) { var m = draft.splice(+p.dataset.pk, 1)[0]; draft.unshift(m); renderPhotos(); }
   });
   $('fImg').addEventListener('change', function () {
-    Array.prototype.forEach.call(this.files, function (f) { draft.push({ file: f, url: URL.createObjectURL(f) }); });
-    this.value = ''; renderPhotos(); setStatus('');
+    var big = [];
+    Array.prototype.forEach.call(this.files, function (f) {
+      var vid = isVidFile(f);
+      if (vid && f.size > MAX_VIDEO_MB * 1048576) { big.push(Math.round(f.size / 1048576)); return; }
+      draft.push({ file: f, url: URL.createObjectURL(f), vid: vid });
+    });
+    this.value = ''; renderPhotos();
+    setStatus(big.length ? 'הסרטון גדול מדי (' + big.join(', ') + 'MB). אפשר עד ' + MAX_VIDEO_MB + 'MB, בערך דקה של צילום. אפשר לקצר אותו באפליקציית התמונות (עריכה) ולנסות שוב.' : '', !!big.length);
   });
   [detail, editor, login, $('aboutView'), $('aboutEditor')].forEach(function (o) { o.addEventListener('click', function (e) { if (e.target === o || e.target.closest('[data-close]')) closeAll(); }); });
   document.addEventListener('keydown', function (e) {
