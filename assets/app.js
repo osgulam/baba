@@ -76,11 +76,25 @@
     $('woodList').innerHTML = ws.concat(WOODS.filter(function (w) { return ws.indexOf(w) < 0; })).map(function (c) { return '<option value="' + esc(c) + '">'; }).join('');
     var list = items.filter(function (i) { return cat === ALL || catOf(i) === cat; });
     grid.innerHTML = list.map(function (i) {
-      var ims = imgs(i);
-      return '<li><button type="button" class="piece" data-id="' + esc(i.id) + '"><span class="frame"><img loading="lazy" src="' + esc(urlOf(ims[0])) + '" data-path="' + esc(ims[0]) + '" alt="' + esc(i.title) + '">' +
-        (i.sample ? '<span class="badge">דוגמה</span>' : '') + (ims.length > 1 ? '<span class="count">' + ims.length + ' תמונות</span>' : '') +
-        '</span><span class="cap"><span class="name">' + esc(i.title) + '</span>' + (i.wood || i.year ? '<span class="wood">' + esc([i.wood, i.year].filter(Boolean).join(' · ')) + '</span>' : '') + '</span></button></li>';
+      var ims = imgs(i), n = ims.length;
+      var sub = [catOf(i), i.wood].filter(Boolean).join(' · ');
+      return '<li class="work" data-id="' + esc(i.id) + '">' +
+        '<div class="r-media"><div class="r-track" data-open>' + ims.map(function (p, k) {
+          return '<div class="r-slide"><img' + (k ? ' loading="lazy"' : '') + ' src="' + esc(urlOf(p)) + '" data-path="' + esc(p) + '" alt="' + esc(i.title) + (n > 1 ? ' – תמונה ' + (k + 1) : '') + '"></div>';
+        }).join('') + '</div>' + (i.sample ? '<span class="badge">דוגמה</span>' : '') +
+        (n > 1 ? '<div class="dots" aria-hidden="true">' + ims.map(function (_, k) { return '<span' + (k ? '' : ' class="on"') + '></span>'; }).join('') + '</div>' : '') + '</div>' +
+        '<button type="button" class="r-info" data-open><span class="name">' + esc(i.title) + '</span>' +
+        (sub ? '<span class="sub">' + esc(sub) + '</span>' : '') + (i.size ? '<span class="sub">' + esc(i.size) + ' ס״מ</span>' : '') +
+        (i.year ? '<span class="yr">' + esc(i.year) + '</span>' : '') + (n > 1 ? '<span class="more">' + n + ' תמונות ›</span>' : '') + '</button>' +
+        (i.description ? '<p class="r-desc">' + esc(i.description) + '</p>' : '') + '</li>';
     }).join('');
+    grid.querySelectorAll('.r-track').forEach(function (t) {
+      var dots = t.parentNode.querySelectorAll('.dots span'); if (!dots.length) return;
+      t.addEventListener('scroll', function () {
+        var k = Math.round(Math.abs(t.scrollLeft) / t.clientWidth);
+        dots.forEach(function (d, j) { d.className = j === k ? 'on' : ''; });
+      }, { passive: true });
+    });
     addBtn.hidden = !canEdit();
     $('loginLink').hidden = canEdit();
     $('logoutLink').hidden = !canEdit();
@@ -292,7 +306,7 @@
   });
 
   /* ---------- events ---------- */
-  grid.addEventListener('click', function (e) { var b = e.target.closest('.piece'); if (!b) return; var it = items.filter(function (x) { return x.id === b.dataset.id; })[0]; if (it) openDetail(it); });
+  grid.addEventListener('click', function (e) { if (!e.target.closest('[data-open],.r-desc')) return; var b = e.target.closest('.work'); if (!b) return; var it = items.filter(function (x) { return x.id === b.dataset.id; })[0]; if (it) openDetail(it); });
   chips.addEventListener('click', function (e) { var b = e.target.closest('.chip'); if (!b) return; cat = b.dataset.c; render(); });
   $('fCat').innerHTML = CATS.map(function (c) { return '<option value="' + c + '">' + c + '</option>'; }).join('');
   addBtn.addEventListener('click', function () { openEditor(null); });
