@@ -24,66 +24,6 @@
       "images": [
         "images/works/prihah-al-galgalim-1.jpg"
       ]
-    },
-    {
-      "id": "sample-kad",
-      "title": "כד עץ לעציץ",
-      "category": "כדים",
-      "wood": "אקליפטוס",
-      "size": "גובה 45, קוטר 30",
-      "year": "2025",
-      "description": "כד מפסי עץ מודבקים, חרוט במחרטה לצורה עגולה. מבפנים מצופה, כך שאפשר לשתול בו ישירות.",
-      "images": [
-        "images/samples/kad-1.svg",
-        "images/samples/kad-2.svg",
-        "images/samples/kad-3.svg"
-      ],
-      "sample": true
-    },
-    {
-      "id": "sample-mritsa",
-      "title": "מריצה לגינה",
-      "category": "מריצות",
-      "wood": "אורן",
-      "size": "110 × 50 × 55",
-      "year": "2024",
-      "description": "מריצה דקורטיבית עם גלגל עץ שמסתובב באמת. משמשת כאדנית פרחים בכניסה לבית.",
-      "images": [
-        "images/samples/mritsa-1.svg",
-        "images/samples/mritsa-2.svg",
-        "images/samples/mritsa-3.svg"
-      ],
-      "sample": true
-    },
-    {
-      "id": "sample-shulchan",
-      "title": "שולחן אוכל",
-      "category": "שולחנות",
-      "wood": "אלון",
-      "size": "180 × 90 × 76",
-      "year": "2023",
-      "description": "שולחן אוכל ל־8 סועדים, משטח מלוחות אלון מלא ורגליים בחיבור שגם ושקע. נבנה לחג, לכל המשפחה.",
-      "images": [
-        "images/samples/shulchan-1.svg",
-        "images/samples/shulchan-2.svg",
-        "images/samples/shulchan-3.svg"
-      ],
-      "sample": true
-    },
-    {
-      "id": "sample-shida",
-      "title": "שידת תכשיטים",
-      "category": "שידות",
-      "wood": "דובדבן",
-      "size": "22 × 14 × 10",
-      "year": "2026",
-      "description": "שידה קטנה עם מכסה ובריח פליז, פינות בשיני מסרק. נבנתה כמתנה ליום הולדת.",
-      "images": [
-        "images/samples/shida-1.svg",
-        "images/samples/shida-2.svg",
-        "images/samples/shida-3.svg"
-      ],
-      "sample": true
     }
   ]
 }
