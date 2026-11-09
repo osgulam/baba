@@ -150,7 +150,7 @@
   }
   function closeAll() {
     if (busy) return;
-    detail.hidden = true; editor.hidden = true; login.hidden = true; lock(false); current = null;
+    detail.hidden = true; editor.hidden = true; login.hidden = true; $('aboutView').hidden = true; $('aboutEditor').hidden = true; lock(false); current = null;
     if (io) { io.disconnect(); io = null; }
   }
 
@@ -200,7 +200,8 @@
   }
 
   // One commit: upload new files, rewrite works.json from the latest copy, delete removed files.
-  function commit(message, newFiles, mutate) {
+  function commit(message, newFiles, mutate, path) {
+    path = path || DATA_PATH; var isWorks = path === DATA_PATH;
     var blobShas;
     return Promise.all(newFiles.map(function (f) { return gh('/git/blobs', { method: 'POST', body: { content: f.base64, encoding: 'base64' } }); }))
       .then(function (bs) { blobShas = bs.map(function (b) { return b.sha; }); return attempt(0); });
@@ -209,18 +210,19 @@
       return gh('/git/ref/heads/' + encodeURIComponent(repo.branch))
         .then(function (ref) { refSha = ref.object.sha; return gh('/git/commits/' + refSha); })
         .then(function (c) {
-          return gh('/contents/' + DATA_PATH + '?ref=' + refSha, { accept: 'application/vnd.github.raw+json', raw: true })
-            .then(function (t) { latest = parse(t); return c.tree.sha; });
+          return gh('/contents/' + path + '?ref=' + refSha, { accept: 'application/vnd.github.raw+json', raw: true })
+            .then(function (t) { latest = isWorks ? parse(t) : JSON.parse(t); }, function (e) { if (!isWorks && e.status === 404) latest = {}; else throw e; })
+            .then(function () { return c.tree.sha; });
         })
         .then(function (baseTree) {
           var out = mutate(latest);
           var tree = newFiles.map(function (f, i) { return { path: f.path, mode: '100644', type: 'blob', sha: blobShas[i] }; });
-          tree.push({ path: DATA_PATH, mode: '100644', type: 'blob', content: JSON.stringify({ items: out.items }, null, 2) + '\n' });
+          tree.push({ path: path, mode: '100644', type: 'blob', content: JSON.stringify(isWorks ? { items: out.items } : out.data, null, 2) + '\n' });
           out.remove.forEach(function (p) { tree.push({ path: p, mode: '100644', type: 'blob', sha: null }); });
           return gh('/git/trees', { method: 'POST', body: { base_tree: baseTree, tree: tree } })
             .then(function (t) { return gh('/git/commits', { method: 'POST', body: { message: message, tree: t.sha, parents: [refSha] } }); })
             .then(function (c) { return gh('/git/refs/heads/' + encodeURIComponent(repo.branch), { method: 'PATCH', body: { sha: c.sha } }); })
-            .then(function () { return out.items; });
+            .then(function () { return isWorks ? out.items : out.data; });
         })
         .catch(function (e) { if (n < 1 && (e.status === 422 || e.status === 409)) return attempt(n + 1); throw e; });
     }
@@ -290,7 +292,7 @@
   }
 
   /* ---------- sign in ---------- */
-  function signOut() { token = ''; setToken(''); render(); }
+  function signOut() { token = ''; setToken(''); render(); if ($('artist')) renderAbout(); }
   $('loginForm').addEventListener('submit', function (e) {
     e.preventDefault(); if (busy) return;
     var st = $('loginStatus'), t = $('fToken').value.trim();
@@ -301,7 +303,7 @@
     gh('').then(function (r) {
       if (!r.permissions || !r.permissions.push) { var er = new Error('no push'); er.status = 403; throw er; }
       setToken(t); $('fToken').value = ''; busy = false; setBusy(false, f); closeAll();
-      loading.hidden = false; return load().then(function () { toast('נכנסת למצב עריכה. אפשר להוסיף עבודות.'); });
+      loading.hidden = false; loadAbout(); return load().then(function () { toast('נכנסת למצב עריכה. אפשר להוסיף עבודות.'); });
     }).catch(function (err) { token = prev; busy = false; setBusy(false, f); setStatus(errMsg(err), true, st); });
   });
 
@@ -333,12 +335,81 @@
     Array.prototype.forEach.call(this.files, function (f) { draft.push({ file: f, url: URL.createObjectURL(f) }); });
     this.value = ''; renderPhotos(); setStatus('');
   });
-  [detail, editor, login].forEach(function (o) { o.addEventListener('click', function (e) { if (e.target === o || e.target.closest('[data-close]')) closeAll(); }); });
+  [detail, editor, login, $('aboutView'), $('aboutEditor')].forEach(function (o) { o.addEventListener('click', function (e) { if (e.target === o || e.target.closest('[data-close]')) closeAll(); }); });
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') closeAll();
     else if (!detail.hidden && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) go(idx + (e.key === 'ArrowLeft' ? 1 : -1));
   });
 
+  /* ---------- about the artist ---------- */
+  var ABOUT_PATH = 'data/about.json';
+  var about = {}, aDraft = null;
+  function loadAbout() {
+    var p = canEdit()
+      ? gh('/contents/' + ABOUT_PATH + '?ref=' + encodeURIComponent(repo.branch), { accept: 'application/vnd.github.raw+json', raw: true })
+      : fetch(ABOUT_PATH + '?v=' + Date.now(), { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); });
+    return p.then(function (t) { about = JSON.parse(t) || {}; }).catch(function () { about = {}; }).then(renderAbout);
+  }
+  function hasAbout() { return !!(about.photo || (about.story || '').trim()); }
+  function renderAbout() {
+    var sec = $('artist'), photo = $('aPhoto');
+    sec.hidden = !hasAbout() && !canEdit();
+    if (sec.hidden) return;
+    photo.hidden = !about.photo;
+    if (about.photo) { photo.src = urlOf(about.photo); photo.dataset.path = about.photo; }
+    $('aLead').textContent = hasAbout() ? (about.story || '').replace(/\s*\n+\s*/g, ' ').trim() : 'עוד לא נכתב. לחצו כאן כדי להוסיף תמונה של באבא חיים ואת הסיפור שלו.';
+    $('aMore').textContent = hasAbout() ? 'לסיפור המלא ›' : 'הוספה ›';
+    $('aCard').classList.toggle('empty', !hasAbout());
+  }
+  function openAbout() {
+    if (!hasAbout()) { if (canEdit()) openAboutEditor(); return; }
+    $('avBody').innerHTML = '<div class="d-wrap">' + (about.photo ? '<div class="d-media"><div class="a-big"><img src="' + esc(urlOf(about.photo)) + '" data-path="' + esc(about.photo) + '" alt="באבא חיים"></div></div>' : '') +
+      '<div class="d-info"><p class="eyebrow" style="margin:0">האומן</p><h2 id="avTitle">באבא חיים</h2>' +
+      (canEdit() ? '<div class="row"><button class="btn" type="button" id="aEditBtn">עריכה</button></div>' : '') +
+      '<p class="d-desc">' + esc(about.story || '') + '</p></div></div>';
+    $('aboutView').hidden = false; lock(true);
+  }
+  function renderAPhoto() {
+    var box = $('aPhotoBox');
+    box.innerHTML = aDraft.url
+      ? '<div class="ptile main"><img src="' + esc(aDraft.url) + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block"><button type="button" class="pdel" id="aPhotoDel" aria-label="הסרת התמונה">×</button></div>'
+      : '<label class="padd" for="aImg"><b>+</b><span>הוספת תמונה</span></label>';
+  }
+  function openAboutEditor() {
+    aDraft = { path: about.photo || '', url: about.photo ? urlOf(about.photo) : '', file: null };
+    $('aStory').value = about.story || ''; $('aImg').value = '';
+    renderAPhoto(); setStatus('', false, $('aStatus'));
+    $('aboutView').hidden = true; $('aboutEditor').hidden = false; lock(true);
+  }
+  $('aCard').addEventListener('click', openAbout);
+  $('avBody').addEventListener('click', function (e) { if (e.target.closest('#aEditBtn')) openAboutEditor(); });
+  $('aPhotoBox').addEventListener('click', function (e) { if (busy) return; if (e.target.closest('#aPhotoDel')) { aDraft = { path: '', url: '', file: null }; renderAPhoto(); } });
+  $('aImg').addEventListener('change', function () { var f = this.files[0]; if (!f) return; aDraft = { file: f, url: URL.createObjectURL(f), path: '' }; this.value = ''; renderAPhoto(); });
+  $('aboutForm').addEventListener('submit', function (e) {
+    e.preventDefault(); if (busy) return;
+    var f = this, st = $('aStatus'), story = $('aStory').value.trim();
+    if (!story && !aDraft.url) { setStatus('הוסיפו תמונה או כתבו את הסיפור.', true, st); return; }
+    setBusy(true, f); setStatus(aDraft.file ? 'מכין את התמונה…' : 'שומר ומפרסם…', false, st);
+    var prep = aDraft.file
+      ? toJpeg(aDraft.file).catch(function (err) { if (/^image\/(jpeg|png|webp|gif)$/.test(aDraft.file.type)) return aDraft.file; throw err; }).then(toBase64).then(function (b64) {
+          aDraft.path = 'images/about/haim-' + Date.now().toString(36) + '.jpg'; return [{ path: aDraft.path, base64: b64 }];
+        })
+      : Promise.resolve([]);
+    prep.then(function (files) {
+      setStatus('שומר ומפרסם…', false, st);
+      return commit('עדכון הסיפור של באבא חיים', files, function (latest) {
+        var old = latest.photo || '';
+        var data = Object.assign({}, latest, { photo: aDraft.path || '', story: story });
+        return { data: data, remove: old && old !== data.photo && old.indexOf('images/about/') === 0 ? [old] : [] };
+      }, ABOUT_PATH);
+    }).then(function (data) {
+      if (aDraft.file) localUrls[aDraft.path] = aDraft.url;
+      about = data; busy = false; setBusy(false, f); closeAll(); renderAbout();
+      toast('נשמר! הסיפור יתעדכן לכל המשפחה תוך דקה־שתיים.', 6000);
+    }).catch(function (err) { busy = false; setBusy(false, f); setStatus(errMsg(err), true, st); });
+  });
+
   render();
   load();
+  loadAbout();
 })();

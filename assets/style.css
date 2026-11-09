@@ -132,3 +132,19 @@ form.sheet{display:flex;flex-direction:column;gap:14px;max-width:640px}
 .steps code{font-size:.85em;background:var(--chip);padding:1px 5px;border-radius:4px;direction:ltr;unicode-bidi:isolate}
 .ltr{direction:ltr;text-align:left}
 .loading{color:var(--muted);padding:48px 0;text-align:center}
+
+/* About the artist: portrait + opening lines between the title and the gallery */
+.artist{padding-block:22px 4px}
+.a-card{all:unset;box-sizing:border-box;width:100%;display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center;cursor:pointer;padding:14px;border-radius:12px;background:#FAF6F0;border:1px solid #EFE6DA}
+.a-card:focus-visible{outline:2px solid var(--oak);outline-offset:2px}
+.a-card.empty{background:transparent;border-style:dashed;border-color:var(--line)}
+.a-photo{width:92px;height:92px;border-radius:50%;object-fit:cover;border:3px solid var(--oak);box-shadow:0 0 0 4px #FAF6F0}
+.a-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.a-eyebrow{color:var(--oak);font-weight:600;font-size:.8rem;letter-spacing:.06em}
+.a-name{font-family:var(--display);font-weight:700;font-size:2rem;line-height:.95;color:var(--accent)}
+.a-lead{color:var(--ink);font-size:.95rem;line-height:1.45;margin-top:4px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.a-card.empty .a-lead{color:var(--muted)}
+.a-more{color:var(--accent);font-weight:600;font-size:.9rem;margin-top:4px}
+@media (min-width:640px){.a-photo{width:128px;height:128px}.a-card{gap:24px;padding:18px 22px}.a-lead{max-width:62ch}}
+.a-big{border-radius:10px;overflow:hidden;background:var(--chip)}
+.a-big img{display:block;width:100%;height:auto;max-height:70vh;object-fit:contain}

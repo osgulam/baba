@@ -24,6 +24,12 @@
   <h1>הנגריה של באבא חיים</h1>
   <p class="lede">כל עבודה כאן נבנתה בידיים של באבא חיים, בנגריה הקטנה בבית. לחצו על עבודה כדי לראות אותה מקרוב ולקרוא את הסיפור שלה.</p>
 </div><div class="grain" aria-hidden="true"></div></header>
+<section class="inner artist" id="artist" hidden aria-label="על האומן">
+  <button type="button" class="a-card" id="aCard">
+    <img class="a-photo" id="aPhoto" alt="באבא חיים" hidden>
+    <span class="a-text"><span class="a-eyebrow">האומן</span><span class="a-name">על באבא חיים</span><span class="a-lead" id="aLead"></span><span class="a-more" id="aMore"></span></span>
+  </button>
+</section>
 <main>
   <div class="inner bar"><div class="chips" id="chips" role="tablist" aria-label="קטגוריות"></div></div>
   <div class="inner">
@@ -77,6 +83,22 @@
     <div class="field"><label for="fToken">מפתח גישה</label><input id="fToken" class="ltr" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="github_pat_…"></div>
     <p class="status" id="loginStatus" role="status"></p>
     <div class="row"><button class="btn primary" id="loginBtn" type="submit">כניסה</button><button class="btn" type="button" data-close>ביטול</button></div>
+  </form>
+</div>
+
+<div class="overlay" id="aboutView" hidden><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="avTitle"><button class="close" type="button" data-close aria-label="סגירה">×</button><div id="avBody"></div></div></div>
+
+<div class="overlay" id="aboutEditor" hidden>
+  <form class="sheet" id="aboutForm" novalidate>
+    <button class="close" type="button" data-close aria-label="סגירה">×</button>
+    <h2>על באבא חיים</h2>
+    <div class="field"><span class="lbl">תמונה של באבא חיים</span>
+      <div class="photos" id="aPhotoBox"></div>
+      <input id="aImg" class="sr" type="file" accept="image/*">
+    </div>
+    <div class="field"><label for="aStory">הסיפור שלו</label><textarea id="aStory" rows="12" maxlength="10000" placeholder="איך התחיל לעבוד עם עץ, ממי למד, מה הוא אוהב לבנות, איפה הנגריה…"></textarea><span class="hint">שורה ריקה בין פסקאות תישמר כמו שהיא. שלוש השורות הראשונות יופיעו בעמוד הראשי.</span></div>
+    <p class="status" id="aStatus" role="status"></p>
+    <div class="row"><button class="btn primary" type="submit">שמירה ופרסום</button><button class="btn" type="button" data-close>ביטול</button></div>
   </form>
 </div>
 
