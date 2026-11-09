@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>הנגריה של באבא חיים</title>
+<meta name="description" content="עבודות עץ בעבודת יד של באבא חיים">
+<meta property="og:title" content="הנגריה של באבא חיים">
+<meta property="og:description" content="עבודות עץ בעבודת יד של באבא חיים">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Karantina:wght@400;700&display=swap">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="stylesheet" href="assets/style.css">
+<script>
+  /* Repo settings. Leave owner/repo empty to detect them from the <owner>.github.io/<repo> address. Fill them in if you use your own domain. */
+  window.SITE_CONFIG = { owner: "", repo: "", branch: "main" };
+</script>
+</head>
+<body>
+<header class="hero"><div class="inner">
+  <p class="eyebrow">עבודות עץ בעבודת יד</p>
+  <h1>הנגריה של באבא חיים</h1>
+  <p class="lede">כל עבודה כאן נבנתה בידיים של באבא חיים, בנגריה הקטנה בבית. לחצו על עבודה כדי לראות אותה מקרוב ולקרוא את הסיפור שלה.</p>
+</div><div class="grain" aria-hidden="true"></div></header>
+<main>
+  <div class="inner bar"><div class="chips" id="chips" role="tablist" aria-label="קטגוריות"></div></div>
+  <div class="inner">
+    <p class="loading" id="loading">טוען עבודות…</p>
+    <p class="empty" id="empty" hidden></p>
+    <ul class="gallery" id="grid"></ul>
+  </div>
+</main>
+<footer class="foot"><div class="inner">
+  <span>נבנה באהבה, שבב אחרי שבב.</span>
+  <button class="linkbtn" id="loginLink" type="button">כניסה לעריכה</button>
+  <button class="linkbtn" id="logoutLink" type="button" hidden>יציאה ממצב עריכה</button>
+</div></footer>
+
+<button class="btn primary fab" id="addBtn" type="button" hidden>+ עבודה חדשה</button>
+
+<div class="overlay" id="detail" hidden><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dTitle"><button class="close" type="button" data-close aria-label="סגירה">×</button><div id="dBody"></div></div></div>
+
+<div class="overlay" id="editor" hidden>
+  <form class="sheet" id="form" novalidate>
+    <button class="close" type="button" data-close aria-label="סגירה">×</button>
+    <h2 id="formTitle">עבודה חדשה</h2>
+    <div class="field"><span class="lbl">תמונות</span><span class="hint">אפשר להוסיף כמה תמונות מזוויות שונות. הראשונה תוצג בגלריה; לחיצה על תמונה אחרת תהפוך אותה לראשית.</span>
+      <div class="photos" id="photos"></div>
+      <input id="fImg" class="sr" type="file" accept="image/*" multiple>
+    </div>
+    <div class="field"><label for="fCat">קטגוריה</label><select id="fCat"></select></div>
+    <div class="field"><label for="fTitle">שם העבודה</label><input id="fTitle" maxlength="80" required placeholder="למשל: שולחן אוכל מאלון"></div>
+    <div class="three">
+      <div class="field"><label for="fWood">סוג עץ</label><input id="fWood" list="woodList" maxlength="30" placeholder="אלון, אגוז, אורן…"><datalist id="woodList"></datalist></div>
+      <div class="field"><label for="fSize">מידות (ס״מ)</label><input id="fSize" maxlength="40" placeholder="45 × 30 × 2.5"></div>
+      <div class="field"><label for="fYear">שנה</label><input id="fYear" inputmode="numeric" maxlength="4" placeholder="2026"></div>
+    </div>
+    <div class="field"><label for="fDesc">הסיפור של העבודה</label><textarea id="fDesc" rows="5" maxlength="2000" placeholder="למי נבנתה, איך, מה היה מיוחד בה…"></textarea></div>
+    <p class="status" id="status" role="status"></p>
+    <div class="row"><button class="btn primary" id="saveBtn" type="submit">שמירה ופרסום</button><button class="btn" type="button" data-close>ביטול</button></div>
+  </form>
+</div>
+
+<div class="overlay" id="login" hidden>
+  <form class="sheet" id="loginForm" novalidate>
+    <button class="close" type="button" data-close aria-label="סגירה">×</button>
+    <h2>כניסה לעריכה</h2>
+    <p class="hint" style="margin:0">רק מי שיש לו מפתח גישה ל־GitHub של האתר יכול להוסיף ולערוך עבודות. את המפתח מדביקים פעם אחת בכל מכשיר.</p>
+    <ol class="steps">
+      <li>ב־GitHub: <b>Settings ← Developer settings ← Fine-grained tokens ← Generate new token</b></li>
+      <li>תחת <b>Repository access</b> בוחרים רק את המאגר של האתר.</li>
+      <li>תחת <b>Permissions</b>: <code>Contents: Read and write</code></li>
+      <li>מעתיקים את המפתח ומדביקים כאן.</li>
+    </ol>
+    <div class="field"><label for="fToken">מפתח גישה</label><input id="fToken" class="ltr" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="github_pat_…"></div>
+    <p class="status" id="loginStatus" role="status"></p>
+    <div class="row"><button class="btn primary" id="loginBtn" type="submit">כניסה</button><button class="btn" type="button" data-close>ביטול</button></div>
+  </form>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+<script src="assets/app.js"></script>
+</body>
+</html>
