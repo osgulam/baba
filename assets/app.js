@@ -121,11 +121,11 @@
       (n > 1 ? '<button class="nav prev" type="button" data-act="prev" aria-label="התמונה הקודמת" disabled>›</button><button class="nav next" type="button" data-act="next" aria-label="התמונה הבאה">‹</button><span class="counter" id="counter">1 / ' + n + '</span>' : '') + '</div>' +
       (n > 1 ? '<div class="thumbs">' + ims.map(function (p, k) { return '<button type="button" class="thumb" data-act="go" data-k="' + k + '" aria-label="תמונה ' + (k + 1) + '" aria-current="' + (k === 0) + '"><img src="' + esc(urlOf(p)) + '" data-path="' + esc(p) + '" alt=""></button>'; }).join('') + '</div>' : '');
     dBody.innerHTML = '<div class="d-wrap"><div class="d-media">' + media + '</div><div class="d-info"><h2 id="dTitle">' + esc(it.title) + '</h2>' +
+      (canEdit() ? '<div class="row" id="dActs"><button class="btn" type="button" data-act="edit">עריכה</button><button class="btn danger" type="button" data-act="ask">מחיקה</button></div>' +
+        '<div class="confirm" id="dConfirm" hidden><p><b>למחוק את "' + esc(it.title) + '"?</b></p><p class="hint">העבודה וכל התמונות שלה יימחקו מהאתר לכולם. אפשר לשחזר רק דרך ההיסטוריה ב־GitHub.</p><div class="row"><button class="btn danger" type="button" data-act="del">כן, למחוק</button><button class="btn" type="button" data-act="keep">ביטול</button></div></div>' : '') +
       (rows.length ? '<dl class="tag">' + rows.map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>' : '') +
       (it.description ? '<p class="d-desc">' + esc(it.description) + '</p>' : '') +
       (it.sample ? '<p class="note">זו עבודה לדוגמה. אפשר למחוק אותה ולהעלות עבודות אמיתיות.</p>' : '') +
-      (canEdit() ? '<div class="row" id="dActs"><button class="btn" type="button" data-act="edit">עריכה</button><button class="btn danger" type="button" data-act="ask">מחיקה</button></div>' +
-        '<div class="confirm" id="dConfirm" hidden><p><b>למחוק את "' + esc(it.title) + '"?</b></p><p class="hint">העבודה וכל התמונות שלה יימחקו מהאתר לכולם. אפשר לשחזר רק דרך ההיסטוריה ב־GitHub.</p><div class="row"><button class="btn danger" type="button" data-act="del">כן, למחוק</button><button class="btn" type="button" data-act="keep">ביטול</button></div></div>' : '') +
       '</div></div>';
     detail.hidden = false; lock(true);
     if (io) { io.disconnect(); io = null; }
